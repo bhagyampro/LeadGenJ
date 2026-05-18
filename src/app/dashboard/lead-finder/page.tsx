@@ -56,19 +56,24 @@ function SearchSelect({
   const [activeIndex, setActiveIndex] = useState(-1)
 
   useEffect(() => {
-    const controller = new AbortController()
+    let ignore = false
     const timer = window.setTimeout(async () => {
-      const res = await fetch(`/api/lead-finder/suggestions?type=${type}&q=${encodeURIComponent(value)}`, {
-        signal: controller.signal,
-      })
-      const data = await res.json()
-      setSuggestions((data.suggestions || []).slice(0, 8))
-      setActiveIndex(-1)
+      try {
+        const res = await fetch(`/api/lead-finder/suggestions?type=${type}&q=${encodeURIComponent(value)}`)
+        const data = await res.json()
+
+        if (!ignore) {
+          setSuggestions((data.suggestions || []).slice(0, 8))
+          setActiveIndex(-1)
+        }
+      } catch {
+        if (!ignore) setSuggestions([])
+      }
     }, 180)
 
     return () => {
+      ignore = true
       window.clearTimeout(timer)
-      controller.abort()
     }
   }, [type, value])
 
