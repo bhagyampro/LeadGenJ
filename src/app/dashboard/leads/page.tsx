@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import * as XLSX from 'xlsx'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +24,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { mapLeadImportRows } from '@/lib/lead-import'
 import { Plus, Search, Filter, Download, Upload, Compass } from 'lucide-react'
 
 interface Lead {
@@ -52,6 +54,11 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isImportOpen, setIsImportOpen] = useState(false)
+  const [importRows, setImportRows] = useState<Array<Record<string, string>>>([])
+  const [importMessage, setImportMessage] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [sheetUrl, setSheetUrl] = useState('')
   const [newLead, setNewLead] = useState({
     firstName: '',
     lastName: '',
@@ -120,6 +127,79 @@ export default function LeadsPage() {
     }
   }
 
+  const handleImportFile = async (file: File) => {
+    setImportMessage('')
+    const buffer = await file.arrayBuffer()
+    const workbook = XLSX.read(buffer, { type: 'array' })
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
+    const mapped = mapLeadImportRows(rows).slice(0, 500)
+    setImportRows(mapped)
+    setImportMessage(mapped.length ? `Previewing ${mapped.length} leads from ${file.name}.` : 'No usable leads found in this file.')
+  }
+
+  const handleBulkImport = async () => {
+    if (!selectedWorkspace || importRows.length === 0) return
+    setImporting(true)
+    setImportMessage('')
+
+    try {
+      const res = await fetch(`/api/workspaces/${selectedWorkspace}/leads/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leads: importRows }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setImportMessage(data.error || 'Import failed.')
+        return
+      }
+
+      setLeads([...(data.leads || []), ...leads])
+      setImportMessage(`Imported ${data.imported || 0} leads.`)
+      setImportRows([])
+    } catch (error) {
+      console.error('Import error:', error)
+      setImportMessage('Import failed.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const handleGoogleSheetImport = async () => {
+    if (!selectedWorkspace || !sheetUrl.trim()) {
+      setImportMessage('Paste a Google Sheets URL first.')
+      return
+    }
+
+    setImporting(true)
+    setImportMessage('')
+
+    try {
+      const res = await fetch(`/api/workspaces/${selectedWorkspace}/leads/import-google-sheet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetUrl }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setImportMessage(data.error || 'Google Sheet import failed.')
+        return
+      }
+
+      setLeads([...(data.leads || []), ...leads])
+      setImportMessage(`Imported ${data.imported || 0} leads from Google Sheets.`)
+      setSheetUrl('')
+    } catch (error) {
+      console.error('Google Sheet import error:', error)
+      setImportMessage('Google Sheet import failed.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const filteredLeads = leads.filter((lead) => {
     const query = searchQuery.toLowerCase()
     return (
@@ -157,10 +237,96 @@ export default function LeadsPage() {
               </option>
             ))}
           </select>
-          <Button variant="outline">
-            <Upload className="w-4 h-4 mr-2" />
-            Import
-          </Button>
+          <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-2" />
+                Import
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl bg-navy-light border-border">
+              <DialogHeader>
+                <DialogTitle className="text-white">Import Leads</DialogTitle>
+                <DialogDescription className="text-muted">
+                  Upload CSV, TSV, XLS, or XLSX files exported from your CRM, spreadsheet, or approved lead source.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sheetUrl" className="text-white">Google Sheets URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="sheetUrl"
+                      value={sheetUrl}
+                      onChange={(event) => setSheetUrl(event.target.value)}
+                      placeholder="https://docs.google.com/spreadsheets/d/..."
+                      className="bg-navy border-border"
+                    />
+                    <Button onClick={handleGoogleSheetImport} disabled={importing || !sheetUrl.trim()}>
+                      Connect
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted">
+                    Share the sheet publicly or publish it to CSV. Headers can be first name, last name, title, company, industry, country, LinkedIn URL.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs uppercase text-muted">or upload file</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="leadImportFile" className="text-white">Spreadsheet File</Label>
+                  <Input
+                    id="leadImportFile"
+                    type="file"
+                    accept=".csv,.tsv,.xls,.xlsx"
+                    className="bg-navy border-border"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) void handleImportFile(file)
+                    }}
+                  />
+                </div>
+                {importMessage && (
+                  <div className="rounded-lg border border-border bg-navy px-4 py-3 text-sm text-muted">
+                    {importMessage}
+                  </div>
+                )}
+                {importRows.length > 0 && (
+                  <div className="max-h-72 overflow-auto rounded-lg border border-border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border hover:bg-transparent">
+                          <TableHead className="text-muted">Name</TableHead>
+                          <TableHead className="text-muted">Title</TableHead>
+                          <TableHead className="text-muted">Company</TableHead>
+                          <TableHead className="text-muted">Industry</TableHead>
+                          <TableHead className="text-muted">LinkedIn</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {importRows.slice(0, 10).map((row, index) => (
+                          <TableRow key={`${row.linkedinProfileUrl}-${index}`} className="border-border">
+                            <TableCell className="text-white">{row.firstName} {row.lastName}</TableCell>
+                            <TableCell className="text-muted">{row.title}</TableCell>
+                            <TableCell className="text-muted">{row.company}</TableCell>
+                            <TableCell className="text-muted">{row.industry}</TableCell>
+                            <TableCell className="text-muted">{row.linkedinProfileUrl || '-'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button onClick={handleBulkImport} disabled={importing || importRows.length === 0}>
+                  {importing ? 'Importing...' : `Import ${importRows.length} Leads`}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" asChild>
             <a href="/dashboard/lead-finder">
               <Compass className="w-4 h-4 mr-2" />
