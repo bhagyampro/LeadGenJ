@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { linkedinIndustries, linkedinRoles, leadFinderCountries } from '@/lib/lead-finder-options'
 import {
   Table,
   TableBody,
@@ -35,70 +36,79 @@ interface PreviewLead {
   icpScore: number
 }
 
-const categories = [
-  { value: 'All Industries', label: 'All Industries' },
-  { value: 'SaaS', label: 'SaaS' },
-  { value: 'AI', label: 'AI and Automation' },
-  { value: 'Real Estate', label: 'Real Estate' },
-  { value: 'Recruitment', label: 'Recruitment' },
-  { value: 'Marketing', label: 'Marketing Agencies' },
-  { value: 'Local Business', label: 'Local Businesses' },
-  { value: 'Ecommerce', label: 'Ecommerce' },
-  { value: 'Finance', label: 'Finance' },
-  { value: 'Healthcare', label: 'Healthcare' },
-  { value: 'Education', label: 'Education' },
-  { value: 'Manufacturing', label: 'Manufacturing' },
-  { value: 'Logistics', label: 'Logistics' },
-  { value: 'Consulting', label: 'Consulting' },
-  { value: 'Legal', label: 'Legal' },
-  { value: 'Hospitality', label: 'Hospitality' },
-  { value: 'Construction', label: 'Construction' },
-  { value: 'Insurance', label: 'Insurance' },
-]
+type SuggestionType = 'industry' | 'role' | 'country'
 
-const countries = [
-  'United States',
-  'Canada',
-  'United Kingdom',
-  'Australia',
-  'India',
-  'Germany',
-  'France',
-  'Spain',
-  'Italy',
-  'Netherlands',
-  'Singapore',
-  'United Arab Emirates',
-  'Brazil',
-  'Mexico',
-  'Japan',
-  'South Korea',
-  'Indonesia',
-  'Philippines',
-  'Malaysia',
-  'South Africa',
-  'Nigeria',
-  'Kenya',
-  'Saudi Arabia',
-  'Qatar',
-  'New Zealand',
-  'Ireland',
-  'Sweden',
-  'Norway',
-  'Denmark',
-  'Switzerland',
-  'Belgium',
-  'Poland',
-  'Portugal',
-  'Argentina',
-  'Chile',
-  'Colombia',
-]
+function SearchSelect({
+  label,
+  value,
+  type,
+  fallback,
+  onChange,
+}: {
+  label: string
+  value: string
+  type: SuggestionType
+  fallback: string[]
+  onChange: (value: string) => void
+}) {
+  const [suggestions, setSuggestions] = useState(fallback.slice(0, 10))
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      const res = await fetch(`/api/lead-finder/suggestions?type=${type}&q=${encodeURIComponent(value)}`, {
+        signal: controller.signal,
+      })
+      const data = await res.json()
+      setSuggestions(data.suggestions || [])
+    }, 180)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [type, value])
+
+  return (
+    <div className="relative space-y-2">
+      <Label className="text-white">{label}</Label>
+      <Input
+        value={value}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          onChange(e.target.value)
+          setOpen(true)
+        }}
+        className="bg-navy border-border"
+      />
+      {open && suggestions.length > 0 && (
+        <div className="absolute z-30 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-navy-light shadow-xl">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              className="block w-full px-3 py-2 text-left text-sm text-white hover:bg-secondary"
+              onMouseDown={(event) => {
+                event.preventDefault()
+                onChange(suggestion)
+                setOpen(false)
+              }}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function LeadFinderPage() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [selectedWorkspace, setSelectedWorkspace] = useState('')
   const [category, setCategory] = useState('SaaS')
+  const [role, setRole] = useState('Founder')
   const [location, setLocation] = useState('United States')
   const [count, setCount] = useState(15)
   const [leads, setLeads] = useState<PreviewLead[]>([])
@@ -129,7 +139,7 @@ export default function LeadFinderPage() {
       const res = await fetch(`/api/workspaces/${selectedWorkspace}/lead-finder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, location, count, importLeads }),
+        body: JSON.stringify({ category, role, location, count, importLeads }),
       })
       const data = await res.json()
 
@@ -201,36 +211,28 @@ export default function LeadFinderPage() {
           <CardTitle className="text-white">Category Search</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-2">
-              <Label className="text-white">Industry Category</Label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="h-10 w-full rounded-lg border border-border bg-navy px-3 text-white"
-              >
-                {categories.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location" className="text-white">Country</Label>
-              <select
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="h-10 w-full rounded-lg border border-border bg-navy px-3 text-white"
-              >
-                {countries.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="grid gap-4 md:grid-cols-5">
+            <SearchSelect
+              label="Industry"
+              type="industry"
+              value={category}
+              fallback={linkedinIndustries}
+              onChange={setCategory}
+            />
+            <SearchSelect
+              label="Role / Title"
+              type="role"
+              value={role}
+              fallback={linkedinRoles}
+              onChange={setRole}
+            />
+            <SearchSelect
+              label="Country"
+              type="country"
+              value={location}
+              fallback={leadFinderCountries}
+              onChange={setLocation}
+            />
             <div className="space-y-2">
               <Label htmlFor="count" className="text-white">Lead Count</Label>
               <Input

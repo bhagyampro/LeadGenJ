@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { linkedinIndustries } from '@/lib/lead-finder-options'
 
 const industryTitles: Record<string, string[]> = {
   all_industries: ['Founder', 'CEO', 'Head of Sales', 'Operations Director', 'Business Development Manager'],
@@ -68,19 +69,20 @@ function normalizeCategory(category: string) {
   return category.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'saas'
 }
 
-function generateLeads(categoryInput: string, location: string, count: number) {
+function generateLeads(categoryInput: string, roleInput: string, location: string, count: number) {
   const category = normalizeCategory(categoryInput)
   const titles = industryTitles[category] || industryTitles.all_industries
   const companyList = companies[category] || companies.all_industries
   const safeCount = Math.min(Math.max(count || 10, 1), 50)
   const safeLocation = location || 'United States'
   const domain = countryDomains[safeLocation] || 'com'
+  const role = roleInput.trim()
 
   return Array.from({ length: safeCount }).map((_, index) => {
     const firstName = firstNames[index % firstNames.length]
     const lastName = lastNames[(index + 3) % lastNames.length]
     const company = companyList[index % companyList.length]
-    const title = titles[index % titles.length]
+    const title = role || titles[index % titles.length]
     const slug = `${firstName}-${lastName}-${category}-${index + 1}`.toLowerCase()
     const companyDomain = company.toLowerCase().replace(/[^a-z0-9]/g, '')
     const connectionCount = 200 + ((index + 1) * 137) % 4800
@@ -130,11 +132,12 @@ export async function POST(
     }
 
     const body = await request.json()
-    const category = String(body.category || 'SaaS')
+    const category = String(body.category || body.industry || 'SaaS')
+    const role = String(body.role || '')
     const location = String(body.location || 'United States')
     const count = Number(body.count || 10)
     const importLeads = Boolean(body.importLeads)
-    const leads = generateLeads(category, location, count)
+    const leads = generateLeads(category, role, location, count)
 
     if (!importLeads) {
       return NextResponse.json({ leads, imported: 0 })
@@ -167,7 +170,9 @@ export async function POST(
               connectionCount: lead.connectionCount,
               sourceProfileUrl: lead.linkedinProfileUrl,
               leadFinderCategory: category,
+              leadFinderRole: role || lead.title,
               country: location,
+              supportedIndustriesCount: linkedinIndustries.length,
             },
             status: 'new',
             icpBreakdown: {
