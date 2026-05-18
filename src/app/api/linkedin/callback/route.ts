@@ -28,11 +28,16 @@ function redirectToDashboard(request: NextRequest, status: string) {
   return NextResponse.redirect(new URL(`/dashboard/linkedin-accounts?linkedin=${status}`, request.url))
 }
 
-async function exchangeCodeForToken(code: string) {
+function getLinkedInRedirectUri(request: NextRequest) {
+  const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin
+  return process.env.LINKEDIN_REDIRECT_URI || `${appUrl.replace(/\/$/, '')}/api/linkedin/callback`
+}
+
+async function exchangeCodeForToken(code: string, redirectUri: string) {
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
-    redirect_uri: process.env.LINKEDIN_REDIRECT_URI || '',
+    redirect_uri: redirectUri,
     client_id: process.env.LINKEDIN_CLIENT_ID || '',
     client_secret: process.env.LINKEDIN_CLIENT_SECRET || '',
   })
@@ -83,7 +88,7 @@ export async function GET(request: NextRequest) {
     return redirectToDashboard(request, 'invalid_state')
   }
 
-  if (!process.env.LINKEDIN_CLIENT_ID || !process.env.LINKEDIN_CLIENT_SECRET || !process.env.LINKEDIN_REDIRECT_URI) {
+  if (!process.env.LINKEDIN_CLIENT_ID || !process.env.LINKEDIN_CLIENT_SECRET) {
     return redirectToDashboard(request, 'missing_config')
   }
 
@@ -103,7 +108,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const token = await exchangeCodeForToken(code)
+    const token = await exchangeCodeForToken(code, getLinkedInRedirectUri(request))
     const profile = await getLinkedInUserInfo(token.access_token)
     const displayName = profile.name || [profile.given_name, profile.family_name].filter(Boolean).join(' ') || 'LinkedIn Account'
     const expiresAt = token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : null

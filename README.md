@@ -16,6 +16,30 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Vercel environment
+
+For the production deployment at `https://lead-gen-j.vercel.app`, set these variables in Vercel Project Settings:
+
+```env
+AUTH_URL=https://lead-gen-j.vercel.app
+NEXTAUTH_URL=https://lead-gen-j.vercel.app
+APP_URL=https://lead-gen-j.vercel.app
+LINKEDIN_REDIRECT_URI=https://lead-gen-j.vercel.app/api/linkedin/callback
+OPENROUTER_APP_URL=https://lead-gen-j.vercel.app
+```
+
+Also add the same production LinkedIn callback URL in LinkedIn Developer settings:
+
+```txt
+https://lead-gen-j.vercel.app/api/linkedin/callback
+```
+
+Privacy policy URL:
+
+```txt
+https://lead-gen-j.vercel.app/privacy
+```
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

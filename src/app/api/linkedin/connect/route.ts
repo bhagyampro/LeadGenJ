@@ -5,6 +5,11 @@ import { prisma } from '@/lib/prisma'
 
 const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization'
 
+function getLinkedInRedirectUri(request: NextRequest) {
+  const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin
+  return process.env.LINKEDIN_REDIRECT_URI || `${appUrl.replace(/\/$/, '')}/api/linkedin/callback`
+}
+
 async function getWorkspaceId(userId: string, requestedWorkspaceId: string | null) {
   if (requestedWorkspaceId) {
     const workspace = await prisma.workspace.findFirst({
@@ -42,7 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (!process.env.LINKEDIN_CLIENT_ID || !process.env.LINKEDIN_REDIRECT_URI) {
+  if (!process.env.LINKEDIN_CLIENT_ID) {
     return NextResponse.redirect(new URL('/dashboard/linkedin-accounts?linkedin=missing_config', request.url))
   }
 
@@ -60,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('client_id', process.env.LINKEDIN_CLIENT_ID)
-  authUrl.searchParams.set('redirect_uri', process.env.LINKEDIN_REDIRECT_URI)
+  authUrl.searchParams.set('redirect_uri', getLinkedInRedirectUri(request))
   authUrl.searchParams.set('scope', 'openid profile email')
   authUrl.searchParams.set('state', state)
 
