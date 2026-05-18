@@ -47,24 +47,6 @@ const companies: Record<string, string[]> = {
 
 const firstNames = ['Aarav', 'Maya', 'Rohan', 'Nisha', 'Vikram', 'Priya', 'Arjun', 'Sara', 'Dev', 'Anika']
 const lastNames = ['Sharma', 'Patel', 'Mehta', 'Kapoor', 'Rao', 'Iyer', 'Singh', 'Gupta', 'Nair', 'Khan']
-const countryDomains: Record<string, string> = {
-  'United States': 'com',
-  Canada: 'ca',
-  'United Kingdom': 'co.uk',
-  Australia: 'com.au',
-  India: 'in',
-  Germany: 'de',
-  France: 'fr',
-  Spain: 'es',
-  Italy: 'it',
-  Netherlands: 'nl',
-  Singapore: 'sg',
-  'United Arab Emirates': 'ae',
-  Brazil: 'com.br',
-  Mexico: 'com.mx',
-  Japan: 'jp',
-}
-
 function normalizeCategory(category: string) {
   return category.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'saas'
 }
@@ -75,7 +57,6 @@ function generateLeads(categoryInput: string, roleInput: string, location: strin
   const companyList = companies[category] || companies.all_industries
   const safeCount = Math.min(Math.max(count || 10, 1), 50)
   const safeLocation = location || 'United States'
-  const domain = countryDomains[safeLocation] || 'com'
   const role = roleInput.trim()
 
   return Array.from({ length: safeCount }).map((_, index) => {
@@ -84,8 +65,6 @@ function generateLeads(categoryInput: string, roleInput: string, location: strin
     const company = companyList[index % companyList.length]
     const title = role || titles[index % titles.length]
     const slug = `${firstName}-${lastName}`.toLowerCase()
-    const companyDomain = company.toLowerCase().replace(/[^a-z0-9]/g, '')
-    const connectionCount = 200 + ((index + 1) * 137) % 4800
 
     return {
       firstName,
@@ -95,9 +74,6 @@ function generateLeads(categoryInput: string, roleInput: string, location: strin
       industry: categoryInput,
       location: safeLocation,
       linkedinProfileUrl: `https://www.linkedin.com/in/${slug}/`,
-      emailAddress: `${firstName}.${lastName}@${companyDomain}.${domain}`.toLowerCase(),
-      phoneNumber: `+1-555-${String(1000 + index).slice(-4)}`,
-      connectionCount,
       source: 'lead_finder_demo',
       icpScore: Math.max(55, 92 - index * 3),
     }
@@ -164,10 +140,7 @@ export async function POST(
             linkedinProfileUrl: lead.linkedinProfileUrl,
             source: lead.source,
             icpScore: lead.icpScore,
-            emailEnriched: lead.emailAddress,
-            phoneEnriched: lead.phoneNumber,
             customAttributes: {
-              connectionCount: lead.connectionCount,
               sourceProfileUrl: lead.linkedinProfileUrl,
               leadFinderCategory: category,
               leadFinderRole: role || lead.title,

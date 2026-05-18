@@ -33,12 +33,7 @@ interface Lead {
   company: string | null
   industry: string | null
   location: string | null
-  emailEnriched: string | null
-  phoneEnriched: string | null
   linkedinProfileUrl?: string | null
-  customAttributes?: {
-    connectionCount?: number
-  } | null
   icpScore: number | null
   status: string
   source: string
@@ -287,9 +282,6 @@ export default function LeadsPage() {
                 <TableHead className="text-muted">Title</TableHead>
                 <TableHead className="text-muted">Company</TableHead>
                 <TableHead className="text-muted">Industry</TableHead>
-                <TableHead className="text-muted">Email</TableHead>
-                <TableHead className="text-muted">Phone</TableHead>
-                <TableHead className="text-muted">Connections</TableHead>
                 <TableHead className="text-muted">LinkedIn</TableHead>
                 <TableHead className="text-muted">ICP Score</TableHead>
                 <TableHead className="text-muted">Status</TableHead>
@@ -298,13 +290,13 @@ export default function LeadsPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : filteredLeads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-muted">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted">
                     No leads found. Add your first lead to get started.
                   </TableCell>
                 </TableRow>
@@ -317,11 +309,6 @@ export default function LeadsPage() {
                     <TableCell className="text-muted">{lead.title}</TableCell>
                     <TableCell className="text-muted">{lead.company}</TableCell>
                     <TableCell className="text-muted">{lead.industry}</TableCell>
-                    <TableCell className="text-muted">{lead.emailEnriched || '-'}</TableCell>
-                    <TableCell className="text-muted">{lead.phoneEnriched || '-'}</TableCell>
-                    <TableCell className="text-muted">
-                      {lead.customAttributes?.connectionCount?.toLocaleString() || '-'}
-                    </TableCell>
                     <TableCell>
                       {lead.linkedinProfileUrl ? (
                         <a

@@ -30,9 +30,6 @@ interface PreviewLead {
   industry: string
   location: string
   linkedinProfileUrl: string
-  emailAddress: string
-  phoneNumber: string
-  connectionCount: number
   icpScore: number
 }
 
@@ -321,9 +318,6 @@ export default function LeadFinderPage() {
                 <TableHead className="text-muted">Title</TableHead>
                 <TableHead className="text-muted">Company</TableHead>
                 <TableHead className="text-muted">Location</TableHead>
-                <TableHead className="text-muted">Email</TableHead>
-                <TableHead className="text-muted">Phone</TableHead>
-                <TableHead className="text-muted">Connections</TableHead>
                 <TableHead className="text-muted">LinkedIn</TableHead>
                 <TableHead className="text-muted">ICP</TableHead>
               </TableRow>
@@ -331,7 +325,7 @@ export default function LeadFinderPage() {
             <TableBody>
               {leads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted">
+                  <TableCell colSpan={6} className="py-8 text-center text-muted">
                     Generate a preview to see category leads.
                   </TableCell>
                 </TableRow>
@@ -342,9 +336,6 @@ export default function LeadFinderPage() {
                     <TableCell className="text-muted">{lead.title}</TableCell>
                     <TableCell className="text-muted">{lead.company}</TableCell>
                     <TableCell className="text-muted">{lead.location}</TableCell>
-                    <TableCell className="text-muted">{lead.emailAddress}</TableCell>
-                    <TableCell className="text-muted">{lead.phoneNumber}</TableCell>
-                    <TableCell className="text-muted">{lead.connectionCount.toLocaleString()}</TableCell>
                     <TableCell>
                       <a
                         href={lead.linkedinProfileUrl}
