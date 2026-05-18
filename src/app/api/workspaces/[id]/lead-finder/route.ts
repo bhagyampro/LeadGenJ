@@ -83,7 +83,7 @@ function generateLeads(categoryInput: string, roleInput: string, location: strin
     const lastName = lastNames[(index + 3) % lastNames.length]
     const company = companyList[index % companyList.length]
     const title = role || titles[index % titles.length]
-    const slug = `${firstName}-${lastName}-${category}-${index + 1}`.toLowerCase()
+    const slug = `${firstName}-${lastName}`.toLowerCase()
     const companyDomain = company.toLowerCase().replace(/[^a-z0-9]/g, '')
     const connectionCount = 200 + ((index + 1) * 137) % 4800
 
@@ -94,7 +94,7 @@ function generateLeads(categoryInput: string, roleInput: string, location: strin
       company,
       industry: categoryInput,
       location: safeLocation,
-      linkedinProfileUrl: `https://www.linkedin.com/in/${slug}`,
+      linkedinProfileUrl: `https://www.linkedin.com/in/${slug}/`,
       emailAddress: `${firstName}.${lastName}@${companyDomain}.${domain}`.toLowerCase(),
       phoneNumber: `+1-555-${String(1000 + index).slice(-4)}`,
       connectionCount,

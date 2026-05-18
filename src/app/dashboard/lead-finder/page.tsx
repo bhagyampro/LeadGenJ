@@ -62,7 +62,7 @@ function SearchSelect({
         signal: controller.signal,
       })
       const data = await res.json()
-      setSuggestions(data.suggestions || [])
+      setSuggestions((data.suggestions || []).slice(0, 8))
       setActiveIndex(-1)
     }, 180)
 
@@ -112,12 +112,12 @@ function SearchSelect({
         className="bg-navy border-border"
       />
       {open && suggestions.length > 0 && (
-        <div className="absolute left-0 top-full z-[100] mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-navy-light shadow-2xl ring-1 ring-black/40">
+        <div className="absolute left-0 top-full z-[100] mt-1 max-h-44 w-full overflow-y-auto rounded-lg border border-border bg-navy-light shadow-2xl ring-1 ring-black/40">
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion}
               type="button"
-              className={`block w-full px-3 py-2 text-left text-sm text-white ${
+              className={`block w-full truncate px-3 py-2 text-left text-sm text-white ${
                 index === activeIndex ? 'bg-secondary' : 'hover:bg-secondary'
               }`}
               onPointerDown={(event) => {
@@ -238,7 +238,7 @@ export default function LeadFinderPage() {
         </select>
       </div>
 
-      <Card className="mb-6 border-border bg-navy-light">
+      <Card className="relative z-40 mb-6 overflow-visible border-border bg-navy-light">
         <CardHeader>
           <CardTitle className="text-white">Category Search</CardTitle>
         </CardHeader>
@@ -296,7 +296,7 @@ export default function LeadFinderPage() {
         </CardContent>
       </Card>
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className="relative z-0 mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-border text-muted">{leads.length} preview leads</Badge>
           <Badge variant="outline" className="border-border text-muted">{category}</Badge>
@@ -307,7 +307,7 @@ export default function LeadFinderPage() {
         </Button>
       </div>
 
-      <Card className="border-border bg-navy-light">
+      <Card className="relative z-0 border-border bg-navy-light">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
