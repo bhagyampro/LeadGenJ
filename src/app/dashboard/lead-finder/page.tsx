@@ -29,15 +29,70 @@ interface PreviewLead {
   industry: string
   location: string
   linkedinProfileUrl: string
+  emailAddress: string
+  phoneNumber: string
+  connectionCount: number
   icpScore: number
 }
 
 const categories = [
+  { value: 'All Industries', label: 'All Industries' },
   { value: 'SaaS', label: 'SaaS' },
+  { value: 'AI', label: 'AI and Automation' },
   { value: 'Real Estate', label: 'Real Estate' },
   { value: 'Recruitment', label: 'Recruitment' },
   { value: 'Marketing', label: 'Marketing Agencies' },
   { value: 'Local Business', label: 'Local Businesses' },
+  { value: 'Ecommerce', label: 'Ecommerce' },
+  { value: 'Finance', label: 'Finance' },
+  { value: 'Healthcare', label: 'Healthcare' },
+  { value: 'Education', label: 'Education' },
+  { value: 'Manufacturing', label: 'Manufacturing' },
+  { value: 'Logistics', label: 'Logistics' },
+  { value: 'Consulting', label: 'Consulting' },
+  { value: 'Legal', label: 'Legal' },
+  { value: 'Hospitality', label: 'Hospitality' },
+  { value: 'Construction', label: 'Construction' },
+  { value: 'Insurance', label: 'Insurance' },
+]
+
+const countries = [
+  'United States',
+  'Canada',
+  'United Kingdom',
+  'Australia',
+  'India',
+  'Germany',
+  'France',
+  'Spain',
+  'Italy',
+  'Netherlands',
+  'Singapore',
+  'United Arab Emirates',
+  'Brazil',
+  'Mexico',
+  'Japan',
+  'South Korea',
+  'Indonesia',
+  'Philippines',
+  'Malaysia',
+  'South Africa',
+  'Nigeria',
+  'Kenya',
+  'Saudi Arabia',
+  'Qatar',
+  'New Zealand',
+  'Ireland',
+  'Sweden',
+  'Norway',
+  'Denmark',
+  'Switzerland',
+  'Belgium',
+  'Poland',
+  'Portugal',
+  'Argentina',
+  'Chile',
+  'Colombia',
 ]
 
 export default function LeadFinderPage() {
@@ -162,13 +217,19 @@ export default function LeadFinderPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-white">Location</Label>
-              <Input
+              <Label htmlFor="location" className="text-white">Country</Label>
+              <select
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="bg-navy border-border"
-              />
+                className="h-10 w-full rounded-lg border border-border bg-navy px-3 text-white"
+              >
+                {countries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="count" className="text-white">Lead Count</Label>
@@ -221,13 +282,17 @@ export default function LeadFinderPage() {
                 <TableHead className="text-muted">Title</TableHead>
                 <TableHead className="text-muted">Company</TableHead>
                 <TableHead className="text-muted">Location</TableHead>
+                <TableHead className="text-muted">Email</TableHead>
+                <TableHead className="text-muted">Phone</TableHead>
+                <TableHead className="text-muted">Connections</TableHead>
+                <TableHead className="text-muted">LinkedIn</TableHead>
                 <TableHead className="text-muted">ICP</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {leads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted">
+                  <TableCell colSpan={9} className="py-8 text-center text-muted">
                     Generate a preview to see category leads.
                   </TableCell>
                 </TableRow>
@@ -238,6 +303,19 @@ export default function LeadFinderPage() {
                     <TableCell className="text-muted">{lead.title}</TableCell>
                     <TableCell className="text-muted">{lead.company}</TableCell>
                     <TableCell className="text-muted">{lead.location}</TableCell>
+                    <TableCell className="text-muted">{lead.emailAddress}</TableCell>
+                    <TableCell className="text-muted">{lead.phoneNumber}</TableCell>
+                    <TableCell className="text-muted">{lead.connectionCount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <a
+                        href={lead.linkedinProfileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-accent hover:underline"
+                      >
+                        Profile
+                      </a>
+                    </TableCell>
                     <TableCell>
                       <Badge className="bg-green-500 text-white">{lead.icpScore}</Badge>
                     </TableCell>
