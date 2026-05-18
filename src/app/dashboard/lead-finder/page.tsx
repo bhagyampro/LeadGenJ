@@ -53,6 +53,7 @@ function SearchSelect({
 }) {
   const [suggestions, setSuggestions] = useState(fallback.slice(0, 10))
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -62,6 +63,7 @@ function SearchSelect({
       })
       const data = await res.json()
       setSuggestions(data.suggestions || [])
+      setActiveIndex(-1)
     }, 180)
 
     return () => {
@@ -71,29 +73,59 @@ function SearchSelect({
   }, [type, value])
 
   return (
-    <div className="relative space-y-2">
+    <div className="relative z-50 space-y-2">
       <Label className="text-white">{label}</Label>
       <Input
         value={value}
         onFocus={() => setOpen(true)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         onChange={(e) => {
           onChange(e.target.value)
           setOpen(true)
         }}
+        onKeyDown={(event) => {
+          if (!open && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+            setOpen(true)
+            return
+          }
+
+          if (event.key === 'ArrowDown') {
+            event.preventDefault()
+            setActiveIndex((current) => Math.min(current + 1, suggestions.length - 1))
+          }
+
+          if (event.key === 'ArrowUp') {
+            event.preventDefault()
+            setActiveIndex((current) => Math.max(current - 1, 0))
+          }
+
+          if (event.key === 'Enter' && activeIndex >= 0 && suggestions[activeIndex]) {
+            event.preventDefault()
+            onChange(suggestions[activeIndex])
+            setOpen(false)
+          }
+
+          if (event.key === 'Escape') {
+            setOpen(false)
+          }
+        }}
         className="bg-navy border-border"
       />
       {open && suggestions.length > 0 && (
-        <div className="absolute z-30 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-navy-light shadow-xl">
-          {suggestions.map((suggestion) => (
+        <div className="absolute left-0 top-full z-[100] mt-2 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-navy-light shadow-2xl ring-1 ring-black/40">
+          {suggestions.map((suggestion, index) => (
             <button
               key={suggestion}
               type="button"
-              className="block w-full px-3 py-2 text-left text-sm text-white hover:bg-secondary"
-              onMouseDown={(event) => {
+              className={`block w-full px-3 py-2 text-left text-sm text-white ${
+                index === activeIndex ? 'bg-secondary' : 'hover:bg-secondary'
+              }`}
+              onPointerDown={(event) => {
                 event.preventDefault()
                 onChange(suggestion)
                 setOpen(false)
               }}
+              onMouseEnter={() => setActiveIndex(index)}
             >
               {suggestion}
             </button>
