@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { mapLeadImportRows } from '@/lib/lead-import'
-import { Plus, Search, Filter, Download, Upload, Compass } from 'lucide-react'
+import { Plus, Search, Filter, Download, Upload, Compass, Trash2 } from 'lucide-react'
 
 interface Lead {
   id: string
@@ -59,6 +59,7 @@ export default function LeadsPage() {
   const [importMessage, setImportMessage] = useState('')
   const [importing, setImporting] = useState(false)
   const [sheetUrl, setSheetUrl] = useState('')
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set())
   const [newLead, setNewLead] = useState({
     firstName: '',
     lastName: '',
@@ -164,6 +165,56 @@ export default function LeadsPage() {
       setImportMessage('Import failed.')
     } finally {
       setImporting(false)
+    }
+  }
+
+  const toggleLeadSelection = (leadId: string) => {
+    setSelectedLeadIds((current) => {
+      const next = new Set(current)
+      if (next.has(leadId)) {
+        next.delete(leadId)
+      } else {
+        next.add(leadId)
+      }
+      return next
+    })
+  }
+
+  const toggleAllFiltered = () => {
+    setSelectedLeadIds((current) => {
+      const allSelected = filteredLeads.length > 0 && filteredLeads.every((lead) => current.has(lead.id))
+      return allSelected ? new Set() : new Set(filteredLeads.map((lead) => lead.id))
+    })
+  }
+
+  const deleteLead = async (leadId: string) => {
+    if (!confirm('Delete this lead?')) return
+    const res = await fetch(`/api/leads/${leadId}`, { method: 'DELETE' })
+    if (res.ok) {
+      setLeads(leads.filter((lead) => lead.id !== leadId))
+      setSelectedLeadIds((current) => {
+        const next = new Set(current)
+        next.delete(leadId)
+        return next
+      })
+    }
+  }
+
+  const bulkDelete = async (deleteAll = false) => {
+    const ids = Array.from(selectedLeadIds)
+    if (!deleteAll && ids.length === 0) return
+    const message = deleteAll ? 'Delete all leads in this workspace?' : `Delete ${ids.length} selected leads?`
+    if (!confirm(message)) return
+
+    const res = await fetch(`/api/workspaces/${selectedWorkspace}/leads/bulk-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, deleteAll }),
+    })
+
+    if (res.ok) {
+      setLeads(deleteAll ? [] : leads.filter((lead) => !selectedLeadIds.has(lead.id)))
+      setSelectedLeadIds(new Set())
     }
   }
 
@@ -436,6 +487,14 @@ export default function LeadsPage() {
           <Download className="w-4 h-4 mr-2" />
           Export
         </Button>
+        <Button variant="outline" onClick={() => bulkDelete(false)} disabled={selectedLeadIds.size === 0}>
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete Selected
+        </Button>
+        <Button variant="destructive" onClick={() => bulkDelete(true)} disabled={leads.length === 0}>
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete All
+        </Button>
       </div>
 
       {/* Leads Table */}
@@ -444,6 +503,14 @@ export default function LeadsPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="text-muted w-10">
+                  <input
+                    type="checkbox"
+                    checked={filteredLeads.length > 0 && filteredLeads.every((lead) => selectedLeadIds.has(lead.id))}
+                    onChange={toggleAllFiltered}
+                    aria-label="Select all filtered leads"
+                  />
+                </TableHead>
                 <TableHead className="text-muted">Name</TableHead>
                 <TableHead className="text-muted">Title</TableHead>
                 <TableHead className="text-muted">Company</TableHead>
@@ -451,24 +518,33 @@ export default function LeadsPage() {
                 <TableHead className="text-muted">LinkedIn</TableHead>
                 <TableHead className="text-muted">ICP Score</TableHead>
                 <TableHead className="text-muted">Status</TableHead>
+                <TableHead className="text-muted">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : filteredLeads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted">
                     No leads found. Add your first lead to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredLeads.map((lead) => (
                   <TableRow key={lead.id} className="border-border">
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedLeadIds.has(lead.id)}
+                        onChange={() => toggleLeadSelection(lead.id)}
+                        aria-label={`Select ${lead.firstName || ''} ${lead.lastName || ''}`}
+                      />
+                    </TableCell>
                     <TableCell className="text-white">
                       {lead.firstName} {lead.lastName}
                     </TableCell>
@@ -502,6 +578,11 @@ export default function LeadsPage() {
                       <Badge variant="outline" className="border-border text-muted">
                         {lead.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="ghost" onClick={() => deleteLead(lead.id)}>
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
