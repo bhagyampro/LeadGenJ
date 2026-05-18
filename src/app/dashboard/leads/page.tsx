@@ -23,7 +23,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Search, Filter, Download, Upload } from 'lucide-react'
+import { Plus, Search, Filter, Download, Upload, Compass } from 'lucide-react'
 
 interface Lead {
   id: string
@@ -159,6 +159,12 @@ export default function LeadsPage() {
           <Button variant="outline">
             <Upload className="w-4 h-4 mr-2" />
             Import
+          </Button>
+          <Button variant="outline" asChild>
+            <a href="/dashboard/lead-finder">
+              <Compass className="w-4 h-4 mr-2" />
+              Lead Finder
+            </a>
           </Button>
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>

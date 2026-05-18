@@ -19,10 +19,12 @@ import {
   Key,
   Webhook,
   UserPlus,
+  Compass,
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Lead Finder', href: '/dashboard/lead-finder', icon: Compass },
   { name: 'Leads', href: '/dashboard/leads', icon: Users },
   { name: 'Campaigns', href: '/dashboard/campaigns', icon: Target },
   { name: 'Unibox', href: '/dashboard/unibox', icon: MessageSquare },
