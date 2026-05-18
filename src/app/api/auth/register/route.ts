@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
@@ -65,9 +64,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Registration error:', error)
+    const errorName = error instanceof Error ? error.name : ''
     if (
-      error instanceof Prisma.PrismaClientKnownRequestError ||
-      error instanceof Prisma.PrismaClientInitializationError
+      errorName === 'PrismaClientKnownRequestError' ||
+      errorName === 'PrismaClientInitializationError'
     ) {
       return NextResponse.json(
         { error: 'Database is not ready. Start Postgres and run npx prisma db push, then try again.' },

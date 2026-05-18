@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
 
 export async function POST(
   request: NextRequest,
@@ -40,7 +39,7 @@ export async function POST(
         workspaceId: campaign.workspaceId,
         name: `${campaign.name} (Copy)`,
         linkedinAccountId: campaign.linkedinAccountId,
-        settings: campaign.settings ?? Prisma.JsonNull,
+        settings: campaign.settings ?? {},
         createdById: session.user.id,
         status: 'draft',
       },
@@ -56,7 +55,7 @@ export async function POST(
           waitDays: seq.waitDays,
           messageTemplate: seq.messageTemplate,
           aiAssisted: seq.aiAssisted,
-          personalizationVariables: seq.personalizationVariables ?? Prisma.JsonNull,
+          personalizationVariables: seq.personalizationVariables ?? {},
         },
       })
     }

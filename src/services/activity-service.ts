@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import type { InputJsonObject } from '@prisma/client/runtime/client'
 import { prisma } from '@/lib/prisma'
 
 export async function recordActivity(input: {
@@ -7,7 +7,7 @@ export async function recordActivity(input: {
   action: string
   entityType: string
   entityId?: string
-  metadata?: Prisma.InputJsonObject
+  metadata?: InputJsonObject
 }) {
   return prisma.activityLog.create({
     data: {
@@ -26,7 +26,7 @@ export async function recordAnalyticsEvent(input: {
   campaignId?: string
   type: string
   value?: number
-  dimensions?: Prisma.InputJsonObject
+  dimensions?: InputJsonObject
 }) {
   return prisma.analyticsEvent.create({
     data: {

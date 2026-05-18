@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import type { InputJsonObject } from '@prisma/client/runtime/client'
 import { prisma } from '@/lib/prisma'
 import { enqueueLinkedInAction } from '@/lib/queue'
 
@@ -13,7 +13,7 @@ export async function queueLinkedInAction(input: {
   workspaceId: string
   linkedinAccountId: string
   type: string
-  payload: Prisma.InputJsonObject
+  payload: InputJsonObject
   scheduledAt?: Date
 }) {
   if (!SUPPORTED_ACTIONS.has(input.type)) {

@@ -1,12 +1,12 @@
 import crypto from 'crypto'
-import { Prisma } from '@prisma/client'
+import type { InputJsonObject } from '@prisma/client/runtime/client'
 import { prisma } from '@/lib/prisma'
 import { enqueueWebhookDelivery } from '@/lib/queue'
 
 export async function triggerWorkspaceWebhooks(input: {
   workspaceId: string
   event: string
-  payload: Prisma.InputJsonObject
+  payload: InputJsonObject
 }) {
   const webhooks = await prisma.webhook.findMany({
     where: {
