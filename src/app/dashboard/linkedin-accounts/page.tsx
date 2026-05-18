@@ -71,6 +71,23 @@ export default function LinkedInAccountsPage() {
   }, [])
 
   useEffect(() => {
+    const result = new URLSearchParams(window.location.search).get('linkedin')
+    const messages: Record<string, string> = {
+      connected: 'LinkedIn connected successfully.',
+      denied: 'LinkedIn authorization was cancelled.',
+      failed: 'LinkedIn connection failed. Check the app credentials and redirect URL.',
+      invalid_state: 'LinkedIn connection expired. Please try again.',
+      missing_config: 'LinkedIn OAuth is missing environment variables.',
+      no_workspace: 'Create or select a workspace before connecting LinkedIn.',
+    }
+
+    if (result && messages[result]) {
+      window.setTimeout(() => setFeedback(messages[result]), 0)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!selectedWorkspace) return
 
     const fetchAccounts = async () => {
@@ -193,6 +210,15 @@ export default function LinkedInAccountsPage() {
     }
   }
 
+  const handleConnectLinkedIn = () => {
+    if (!selectedWorkspace) {
+      setFeedback('Create or select a workspace before connecting LinkedIn.')
+      return
+    }
+
+    window.location.href = `/api/linkedin/connect?workspaceId=${selectedWorkspace}`
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -228,6 +254,9 @@ export default function LinkedInAccountsPage() {
               </option>
             ))}
           </select>
+          <Button onClick={handleConnectLinkedIn} disabled={!selectedWorkspace}>
+            Connect LinkedIn
+          </Button>
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button>
