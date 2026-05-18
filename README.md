@@ -18,26 +18,26 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Vercel environment
 
-For the production deployment at `https://lead-gen-j.vercel.app`, set these variables in Vercel Project Settings:
+For the production deployment at `https://leadgenj.vercel.app`, set these variables in Vercel Project Settings:
 
 ```env
-AUTH_URL=https://lead-gen-j.vercel.app
-NEXTAUTH_URL=https://lead-gen-j.vercel.app
-APP_URL=https://lead-gen-j.vercel.app
-LINKEDIN_REDIRECT_URI=https://lead-gen-j.vercel.app/api/linkedin/callback
-OPENROUTER_APP_URL=https://lead-gen-j.vercel.app
+AUTH_URL=https://leadgenj.vercel.app
+NEXTAUTH_URL=https://leadgenj.vercel.app
+APP_URL=https://leadgenj.vercel.app
+LINKEDIN_REDIRECT_URI=https://leadgenj.vercel.app/api/linkedin/callback
+OPENROUTER_APP_URL=https://leadgenj.vercel.app
 ```
 
 Also add the same production LinkedIn callback URL in LinkedIn Developer settings:
 
 ```txt
-https://lead-gen-j.vercel.app/api/linkedin/callback
+https://leadgenj.vercel.app/api/linkedin/callback
 ```
 
 Privacy policy URL:
 
 ```txt
-https://lead-gen-j.vercel.app/privacy
+https://leadgenj.vercel.app/privacy
 ```
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
