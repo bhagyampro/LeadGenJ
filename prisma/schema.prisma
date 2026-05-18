@@ -1,0 +1,469 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String?
+  fullName          String
+  companyName       String?
+  avatarUrl         String?
+  creditsBalance    Int       @default(0)
+  subscriptionTier  String    @default("free")
+  subscriptionStatus String   @default("inactive")
+  stripeCustomerId  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  workspaces        WorkspaceMember[]
+  ownedWorkspaces   Workspace[] @relation("Owner")
+  campaigns         Campaign[]
+  creditTransactions CreditTransaction[]
+  sessions          Session[]
+  assignedTasks     Task[]    @relation("TaskAssignee")
+  ownedDeals        CrmDeal[] @relation("DealOwner")
+  activityLogs      ActivityLog[]
+  notifications     Notification[]
+}
+
+model Workspace {
+  id                String    @id @default(cuid())
+  name              String
+  ownerId           String
+  owner             User      @relation("Owner", fields: [ownerId], references: [id])
+  settings          Json      @default("{}")
+  createdAt         DateTime  @default(now())
+  members           WorkspaceMember[]
+  linkedinAccounts  LinkedInAccount[]
+  campaigns         Campaign[]
+  leads             Lead[]
+  uniboxConversations UniboxConversation[]
+  apiKeys           ApiKey[]
+  webhooks          Webhook[]
+  proxyAccounts     ProxyAccount[]
+  tasks             Task[]
+  crmDeals          CrmDeal[]
+  analytics         AnalyticsEvent[]
+  activityLogs      ActivityLog[]
+  notifications     Notification[]
+}
+
+model Session {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash         String    @unique
+  refreshTokenHash  String?   @unique
+  ipAddress         String?
+  userAgent         String?
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model WorkspaceMember {
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role              String    @default("member")
+  joinedAt          DateTime  @default(now())
+  @@id([workspaceId, userId])
+}
+
+model LinkedInAccount {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name              String
+  profileUrl        String?
+  sessionCookieEncrypted String
+  dailyLimit        Int       @default(100)
+  proxyAccountId    String?
+  proxyAccount      ProxyAccount? @relation(fields: [proxyAccountId], references: [id])
+  isActive          Boolean   @default(true)
+  warmupProgress    Int       @default(0)
+  status            String    @default("pending")
+  lastUsed          DateTime?
+  messagesSentToday Int       @default(0)
+  lastResetDate     DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  campaigns         Campaign[]
+  messages          Message[]
+  uniboxConversations UniboxConversation[]
+  automationActions AutomationAction[]
+
+  @@index([workspaceId])
+  @@index([proxyAccountId])
+}
+
+model Campaign {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  linkedinAccountId String?
+  linkedinAccount   LinkedInAccount? @relation(fields: [linkedinAccountId], references: [id])
+  name              String
+  status            String    @default("draft")
+  settings          Json      @default("{}")
+  createdById       String
+  createdBy         User      @relation(fields: [createdById], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  sequences         Sequence[]
+  campaignLeads     CampaignLead[]
+  messages          Message[]
+  runs              CampaignRun[]
+  analytics         AnalyticsEvent[]
+
+  @@index([workspaceId, status])
+}
+
+model Sequence {
+  id                String    @id @default(cuid())
+  campaignId        String
+  campaign          Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name              String
+  stepOrder         Int
+  waitDays          Int       @default(1)
+  messageTemplate   String
+  channel           String    @default("linkedin")
+  actionType        String    @default("message")
+  aiAssisted        Boolean   @default(false)
+  personalizationVariables Json @default("{}")
+  conditions        Json      @default("{}")
+  createdAt         DateTime  @default(now())
+
+  @@index([campaignId, stepOrder])
+  @@map("campaign_steps")
+}
+
+model Lead {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  linkedinProfileUrl String?
+  firstName         String?
+  lastName          String?
+  title             String?
+  company           String?
+  industry          String?
+  location          String?
+  icpScore          Int?
+  icpBreakdown      Json?
+  emailEnriched     String?
+  phoneEnriched     String?
+  customAttributes  Json      @default("{}")
+  status            String    @default("new")
+  source            String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  campaignLeads     CampaignLead[]
+  messages          Message[]
+  uniboxConversations UniboxConversation[]
+  replies           Reply[]
+  deals             CrmDeal[]
+  tasks             Task[]
+
+  @@index([workspaceId, status])
+  @@index([linkedinProfileUrl])
+}
+
+model CampaignLead {
+  campaignId        String
+  campaign          Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  leadId            String
+  lead              Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  status            String    @default("pending")
+  lastMessageSent   DateTime?
+  nextMessageDate   DateTime?
+  currentStep       Int       @default(0)
+  notes             String?
+  lastError         String?
+  completedAt       DateTime?
+  @@id([campaignId, leadId])
+  @@index([status, nextMessageDate])
+}
+
+model Message {
+  id                String    @id @default(cuid())
+  campaignId        String
+  campaign          Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  leadId            String
+  lead              Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  linkedinAccountId String?
+  linkedinAccount   LinkedInAccount? @relation(fields: [linkedinAccountId], references: [id])
+  sequenceId        String?
+  direction         String
+  content           String
+  status            String    @default("queued")
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+  replies           Reply[]
+  automationAction  AutomationAction?
+
+  @@index([campaignId, status])
+  @@index([leadId])
+}
+
+model UniboxConversation {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  leadId            String
+  lead              Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  linkedinAccountId String
+  linkedinAccount   LinkedInAccount @relation(fields: [linkedinAccountId], references: [id], onDelete: Cascade)
+  lastMessage       String?
+  lastMessageAt     DateTime?
+  isRead            Boolean   @default(false)
+  status            String    @default("open")
+  createdAt         DateTime  @default(now())
+  replies           Reply[]
+
+  @@index([workspaceId, isRead])
+}
+
+model Reply {
+  id                String    @id @default(cuid())
+  conversationId    String
+  conversation      UniboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  leadId            String
+  lead              Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  messageId         String?
+  message           Message?  @relation(fields: [messageId], references: [id])
+  direction         String
+  content           String
+  sentiment         String?
+  receivedAt        DateTime  @default(now())
+  metadata          Json      @default("{}")
+
+  @@index([conversationId, receivedAt])
+  @@index([leadId])
+  @@map("replies")
+}
+
+model CampaignRun {
+  id                String    @id @default(cuid())
+  campaignId        String
+  campaign          Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  status            String    @default("queued")
+  scheduledAt       DateTime  @default(now())
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  totals            Json      @default("{}")
+  error             String?
+  createdAt         DateTime  @default(now())
+
+  @@index([campaignId, status])
+  @@index([scheduledAt])
+  @@map("campaign_runs")
+}
+
+model AutomationAction {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  linkedinAccountId String
+  linkedinAccount   LinkedInAccount @relation(fields: [linkedinAccountId], references: [id], onDelete: Cascade)
+  messageId         String?   @unique
+  message           Message?  @relation(fields: [messageId], references: [id])
+  type              String
+  status            String    @default("queued")
+  payload           Json      @default("{}")
+  scheduledAt       DateTime  @default(now())
+  startedAt         DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  error             String?
+  createdAt         DateTime  @default(now())
+
+  @@index([workspaceId, status])
+  @@index([linkedinAccountId, scheduledAt])
+  @@map("automation_actions")
+}
+
+model CreditTransaction {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount            Int
+  transactionType   String
+  featureUsed       String?
+  metadata          Json      @default("{}")
+  createdAt         DateTime  @default(now())
+}
+
+model ApiKey {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name              String
+  keyHashed         String    @unique
+  permissions       Json      @default("{}")
+  lastUsed          DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime  @default(now())
+  revokedAt         DateTime?
+
+  @@index([workspaceId])
+}
+
+model Webhook {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  url               String
+  events            String[]
+  isActive          Boolean   @default(true)
+  secret            String?
+  createdAt         DateTime  @default(now())
+  deliveries        WebhookDelivery[]
+
+  @@index([workspaceId, isActive])
+}
+
+model WebhookDelivery {
+  id                String    @id @default(cuid())
+  webhookId         String
+  webhook           Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event             String
+  payload           Json
+  status            String    @default("pending")
+  attempts          Int       @default(0)
+  nextAttemptAt     DateTime?
+  responseStatus    Int?
+  responseBody      String?
+  error             String?
+  createdAt         DateTime  @default(now())
+  deliveredAt       DateTime?
+
+  @@index([webhookId, status])
+  @@index([nextAttemptAt])
+  @@map("webhook_deliveries")
+}
+
+model ProxyAccount {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name              String
+  type              String
+  host              String
+  port              Int
+  usernameEncrypted String?
+  passwordEncrypted String?
+  country           String?
+  city              String?
+  status            String    @default("unchecked")
+  lastCheckedAt     DateTime?
+  latencyMs         Int?
+  linkedInAccounts  LinkedInAccount[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([workspaceId, status])
+  @@map("proxy_accounts")
+}
+
+model Task {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  leadId            String?
+  lead              Lead?     @relation(fields: [leadId], references: [id])
+  assigneeId        String?
+  assignee          User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  title             String
+  description       String?
+  status            String    @default("open")
+  dueAt             DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([workspaceId, status])
+  @@index([assigneeId, dueAt])
+  @@map("tasks")
+}
+
+model CrmDeal {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  leadId            String?
+  lead              Lead?     @relation(fields: [leadId], references: [id])
+  ownerId           String?
+  owner             User?     @relation("DealOwner", fields: [ownerId], references: [id])
+  title             String
+  stage             String    @default("new")
+  valueCents        Int       @default(0)
+  currency          String    @default("USD")
+  probability       Int       @default(0)
+  expectedCloseAt   DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([workspaceId, stage])
+  @@index([ownerId])
+  @@map("crm_deals")
+}
+
+model AnalyticsEvent {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaignId        String?
+  campaign          Campaign? @relation(fields: [campaignId], references: [id])
+  type              String
+  value             Float     @default(1)
+  dimensions        Json      @default("{}")
+  occurredAt        DateTime  @default(now())
+
+  @@index([workspaceId, type, occurredAt])
+  @@index([campaignId])
+  @@map("analytics")
+}
+
+model ActivityLog {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actorId           String?
+  actor             User?     @relation(fields: [actorId], references: [id])
+  action            String
+  entityType        String
+  entityId          String?
+  metadata          Json      @default("{}")
+  createdAt         DateTime  @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@index([actorId])
+  @@map("activity_logs")
+}
+
+model Notification {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id])
+  type              String
+  title             String
+  body              String?
+  readAt            DateTime?
+  metadata          Json      @default("{}")
+  createdAt         DateTime  @default(now())
+
+  @@index([workspaceId, readAt])
+  @@index([userId])
+  @@map("notifications")
+}
