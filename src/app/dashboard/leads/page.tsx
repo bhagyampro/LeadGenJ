@@ -322,13 +322,13 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white font-heading">Leads</h1>
           <p className="text-muted mt-1">Manage your lead database</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <select
             value={selectedWorkspace}
             onChange={(e) => setSelectedWorkspace(e.target.value)}
@@ -357,7 +357,7 @@ export default function LeadsPage() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="sheetUrl" className="text-white">Google Sheets URL</Label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Input
                       id="sheetUrl"
                       value={sheetUrl}
@@ -452,7 +452,7 @@ export default function LeadsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="firstName" className="text-white">First Name</Label>
                       <Input
@@ -490,7 +490,7 @@ export default function LeadsPage() {
                       className="bg-navy border-border"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="industry" className="text-white">Industry</Label>
                       <Input
@@ -531,7 +531,7 @@ export default function LeadsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="edit-firstName" className="text-white">First Name</Label>
                   <Input id="edit-firstName" value={editingLead.firstName} onChange={(e) => setEditingLead({ ...editingLead, firstName: e.target.value })} className="bg-navy border-border" />
@@ -549,7 +549,7 @@ export default function LeadsPage() {
                 <Label htmlFor="edit-company" className="text-white">Company</Label>
                 <Input id="edit-company" value={editingLead.company} onChange={(e) => setEditingLead({ ...editingLead, company: e.target.value })} className="bg-navy border-border" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="edit-industry" className="text-white">Industry</Label>
                   <Input id="edit-industry" value={editingLead.industry} onChange={(e) => setEditingLead({ ...editingLead, industry: e.target.value })} className="bg-navy border-border" />
@@ -587,8 +587,8 @@ export default function LeadsPage() {
       </Dialog>
 
       {/* Search and Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="relative w-full lg:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <Input
             placeholder="Search leads..."

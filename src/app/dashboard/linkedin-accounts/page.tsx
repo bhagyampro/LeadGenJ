@@ -249,13 +249,13 @@ export default function LinkedInAccountsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white font-heading">LinkedIn Accounts</h1>
           <p className="text-muted mt-1">Connect and manage user-approved LinkedIn sending accounts</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <select
             value={selectedWorkspace}
             onChange={(e) => setSelectedWorkspace(e.target.value)}
@@ -458,7 +458,7 @@ export default function LinkedInAccountsPage() {
                     </div>
                     <Progress value={account.warmupProgress} className="h-2" />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       size="sm"
                       variant="outline"

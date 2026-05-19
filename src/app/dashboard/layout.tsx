@@ -20,6 +20,7 @@ import {
   Webhook,
   UserPlus,
   Compass,
+  Menu,
 } from 'lucide-react'
 
 const navigation = [
@@ -48,6 +49,7 @@ export default function DashboardLayout({
   const { data: session, status } = useSession()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -68,10 +70,46 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-navy flex">
+    <div className="min-h-screen bg-navy">
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-navy-light px-4 lg:hidden">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
+            <MessageSquare className="h-5 w-5 text-navy" />
+          </div>
+          <span className="font-heading text-lg font-bold text-white">LeadgenJ</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          className="rounded-lg border border-border p-2 text-muted hover:text-white"
+          aria-label="Toggle navigation"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </header>
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-x-0 top-14 z-50 border-b border-border bg-navy-light p-3 shadow-xl lg:hidden">
+          <nav className="grid grid-cols-2 gap-2">
+            {[...navigation, ...settingsNav].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-secondary hover:text-white"
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
+
+      <div className="flex">
       {/* Sidebar */}
       <aside className={cn(
-        "fixed left-0 top-0 h-screen bg-navy-light border-r border-border transition-all duration-300 z-40",
+        "fixed left-0 top-0 z-40 hidden h-screen bg-navy-light border-r border-border transition-all duration-300 lg:block",
         sidebarOpen ? "w-64" : "w-16"
       )}>
         <div className="flex flex-col h-full">
@@ -144,11 +182,25 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <main className={cn(
-        "flex-1 transition-all duration-300",
-        sidebarOpen ? "ml-64" : "ml-16"
+        "min-w-0 flex-1 pb-20 transition-all duration-300 lg:pb-0",
+        sidebarOpen ? "lg:ml-64" : "lg:ml-16"
       )}>
         {children}
       </main>
+      </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-border bg-navy-light lg:hidden">
+        {navigation.slice(0, 5).map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center gap-1 px-1 py-2 text-[11px] text-muted hover:text-white"
+          >
+            <item.icon className="h-5 w-5" />
+            <span className="max-w-full truncate">{item.name}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   )
 }

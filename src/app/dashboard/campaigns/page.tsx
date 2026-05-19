@@ -159,13 +159,13 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white font-heading">Campaigns</h1>
           <p className="text-muted mt-1">Manage your outreach campaigns</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <select
             value={selectedWorkspace}
             onChange={(e) => setSelectedWorkspace(e.target.value)}
@@ -277,7 +277,7 @@ export default function CampaignsPage() {
                     <span className="text-white">{campaign._count?.messages || 0}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button size="sm" variant="outline" asChild>
                     <Link href={`/dashboard/campaigns/${campaign.id}`}>
                       <Eye className="w-4 h-4 mr-1" />

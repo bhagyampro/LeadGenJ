@@ -100,11 +100,20 @@ const providers: NextAuthConfig['providers'] = [
   }),
 ]
 
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+function getGoogleOAuthConfig() {
+  return {
+    clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_AUTH_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_AUTH_CLIENT_SECRET,
+  }
+}
+
+const googleOAuth = getGoogleOAuthConfig()
+
+if (googleOAuth.clientId && googleOAuth.clientSecret) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: googleOAuth.clientId,
+      clientSecret: googleOAuth.clientSecret,
       allowDangerousEmailAccountLinking: true,
     })
   )

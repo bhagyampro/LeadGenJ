@@ -82,8 +82,8 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-8 flex items-center justify-between gap-4">
+    <div className="p-4 sm:p-6">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-heading text-3xl font-bold text-white">API Keys</h1>
           <p className="mt-1 text-muted">Create and view workspace developer keys</p>
@@ -139,7 +139,7 @@ export default function ApiKeysPage() {
           ) : (
             <div className="space-y-3">
               {keys.map((key) => (
-                <div key={key.id} className="flex items-center justify-between rounded-lg border border-border bg-navy p-4">
+                <div key={key.id} className="flex flex-col gap-3 rounded-lg border border-border bg-navy p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium text-white">{key.name}</p>
                     <p className="text-sm text-muted">Created {new Date(key.createdAt).toLocaleDateString()}</p>

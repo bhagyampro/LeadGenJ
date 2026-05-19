@@ -211,7 +211,7 @@ export default function CampaignDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="h-80 rounded-lg bg-navy-light animate-pulse" />
       </div>
     )
@@ -219,7 +219,7 @@ export default function CampaignDetailPage() {
 
   if (!campaign) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Card className="bg-navy-light border-border">
           <CardContent className="p-8 text-muted">Campaign not found.</CardContent>
         </Card>
@@ -228,8 +228,8 @@ export default function CampaignDetailPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Link href="/dashboard/campaigns" className="text-sm text-accent hover:underline">Back to campaigns</Link>
           <h1 className="mt-2 font-heading text-3xl font-bold text-white">{campaign.name}</h1>
@@ -237,7 +237,7 @@ export default function CampaignDetailPage() {
             {campaign.linkedinAccount?.name || 'No LinkedIn account selected'} • {campaign._count?.campaignLeads || 0} leads • {campaign._count?.messages || 0} messages
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge className="capitalize">{campaign.status}</Badge>
           {campaign.status === 'active' ? (
             <Button variant="outline" onClick={() => changeStatus('pause')}>

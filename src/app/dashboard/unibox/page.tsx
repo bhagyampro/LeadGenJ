@@ -85,8 +85,8 @@ export default function UniboxPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white font-heading">Unibox</h1>
           <p className="text-muted mt-1">All your LinkedIn conversations in one place</p>
@@ -104,7 +104,7 @@ export default function UniboxPage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+      <div className="grid min-h-[70dvh] grid-cols-1 gap-6 lg:h-[calc(100vh-200px)] lg:grid-cols-3">
         {/* Conversations List */}
         <Card className="bg-navy-light border-border">
           <CardHeader className="pb-3">
@@ -166,7 +166,7 @@ export default function UniboxPage() {
           {selectedConversation ? (
             <>
               <CardHeader className="border-b border-border">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <CardTitle className="text-white">
                       {selectedConversation.lead.firstName} {selectedConversation.lead.lastName}

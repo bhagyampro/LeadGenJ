@@ -221,8 +221,8 @@ export default function LeadFinderPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-heading text-3xl font-bold text-white">Lead Finder</h1>
           <p className="mt-1 text-muted">Find and import category leads for compliant campaign testing</p>
@@ -279,7 +279,7 @@ export default function LeadFinderPage() {
                 className="bg-navy border-border"
               />
             </div>
-            <div className="flex items-end gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row md:items-end">
               <Button onClick={() => runFinder(false)} disabled={loading}>
                 <Search className="mr-2 h-4 w-4" />
                 Preview
@@ -298,8 +298,8 @@ export default function LeadFinderPage() {
         </CardContent>
       </Card>
 
-      <div className="relative z-0 mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="relative z-0 mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="border-border text-muted">{leads.length} preview leads</Badge>
           <Badge variant="outline" className="border-border text-muted">{category}</Badge>
         </div>
