@@ -46,16 +46,16 @@ interface Campaign {
 }
 
 const demoMessages = [
-  'Hi {{firstName}}, noticed your work at {{company}} around {{industry}}. Curious if improving outbound reply quality is on your radar this quarter?',
-  'Hi {{firstName}}, your role as {{title}} caught my eye. We help teams find better-fit prospects before campaigns go live. Worth comparing notes?',
-  'Hey {{firstName}}, I saw {{company}} is active in {{industry}}. We built a lightweight way to score leads and personalize LinkedIn outreach. Open to a quick look?',
-  'Hi {{firstName}}, quick one: are you currently using ICP scoring before your team starts outbound campaigns?',
-  'Hi {{firstName}}, I work with teams trying to reduce generic LinkedIn outreach. Thought this might be relevant for {{company}}.',
-  'Hey {{firstName}}, saw your profile and thought there may be overlap with how we help {{industry}} teams improve lead quality. Should I send details?',
-  'Hi {{firstName}}, if {{company}} is scaling outbound, I can share a simple workflow for cleaner lead lists and safer campaign sequencing.',
-  'Hi {{firstName}}, noticed you lead work around {{title}} priorities. We help turn raw prospects into ranked, personalized outreach lists.',
-  'Hey {{firstName}}, are you the right person at {{company}} to ask about LinkedIn outreach and lead quality?',
-  'Hi {{firstName}}, I had an idea for improving reply rates from {{industry}} prospects. Happy to send a short example if useful.',
+  'Hi {{firstName}}, I noticed your work as {{title}} at {{company}}. I help teams improve lead quality and outreach relevance before campaigns go live. Would it be worth sharing a short example?',
+  'Hi {{firstName}}, {{company}} looks active in {{industry}}. We help teams identify stronger-fit prospects and personalize outreach at scale. Open to a quick conversation?',
+  'Hi {{firstName}}, I saw your role at {{company}} and thought there may be a fit. We help teams reduce generic outreach by scoring leads and tailoring messages before sending.',
+  'Hi {{firstName}}, are you currently reviewing ways to improve outbound targeting or reply quality at {{company}}? I can share a concise workflow if helpful.',
+  'Hi {{firstName}}, I work with teams that want cleaner prospect lists and more relevant LinkedIn outreach. Given your work at {{company}}, I thought this may be relevant.',
+  'Hi {{firstName}}, I noticed {{company}} in the {{industry}} space. We help teams prioritize prospects, personalize first touches, and keep campaign execution organized.',
+  'Hi {{firstName}}, quick question: is improving lead qualification or outbound personalization a current priority for your team at {{company}}?',
+  'Hi {{firstName}}, I came across your profile and thought our lead scoring and campaign workflow could be useful for {{company}}. Should I send over a brief overview?',
+  'Hi {{firstName}}, many {{industry}} teams are trying to make outreach more targeted without adding manual work. We built a simple way to support that.',
+  'Hi {{firstName}}, if {{company}} is exploring better outbound workflows, I would be glad to share how teams use ICP scoring and message personalization together.',
 ]
 
 export default function CampaignDetailPage() {
@@ -304,7 +304,9 @@ export default function CampaignDetailPage() {
         <Card className="bg-navy-light border-border">
           <CardHeader>
             <CardTitle className="text-white">Campaign Steps</CardTitle>
-            <CardDescription className="text-muted">Edit every step and message template before running</CardDescription>
+            <CardDescription className="text-muted">
+              Edit every step before running. Variables such as {'{{firstName}}'}, {'{{company}}'}, {'{{title}}'}, and {'{{industry}}'} auto-fill from each lead.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={saveStep} className="mb-6 rounded-lg border border-border bg-navy p-4">
@@ -320,6 +322,9 @@ export default function CampaignDetailPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="template" className="text-white">Message Template</Label>
+                <p className="text-xs text-muted">
+                  Keep the variable tags in the template. You do not manually replace them; the campaign fills them from each lead record when messages are generated.
+                </p>
                 <textarea
                   id="template"
                   value={draftStep.messageTemplate}
@@ -365,8 +370,10 @@ export default function CampaignDetailPage() {
 
         <Card className="bg-navy-light border-border">
           <CardHeader>
-            <CardTitle className="text-white">10 Message Examples</CardTitle>
-            <CardDescription className="text-muted">Copy or load into the step editor</CardDescription>
+            <CardTitle className="text-white">10 Professional Message Examples</CardTitle>
+            <CardDescription className="text-muted">
+              Copy or load into the step editor. Placeholder variables are replaced automatically for each lead.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
