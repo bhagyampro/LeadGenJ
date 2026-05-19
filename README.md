@@ -31,6 +31,10 @@ OPENROUTER_API_KEY=sk-or-your-openrouter-api-key
 OPENROUTER_MODEL=deepseek/deepseek-v4-flash:free
 LINKEDIN_ACTION_PROVIDER=manual
 CRON_SECRET=use-a-long-random-secret
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+AUTH_SECRET=use-a-long-random-auth-secret
+NEXTAUTH_SECRET=use-the-same-value-as-auth-secret
 ```
 
 Also add the same production LinkedIn callback URL in LinkedIn Developer settings:

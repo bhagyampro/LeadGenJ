@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!googleEnabled) {
-      setError('Google login is not configured yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.')
+      setError('Google login is not configured yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in local .env and Vercel Environment Variables.')
       return
     }
     setGoogleLoading(true)
