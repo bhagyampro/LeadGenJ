@@ -29,6 +29,8 @@ OPENROUTER_APP_URL=https://leadgenj.vercel.app
 AI_PROVIDER=openrouter
 OPENROUTER_API_KEY=sk-or-your-openrouter-api-key
 OPENROUTER_MODEL=deepseek/deepseek-v4-flash:free
+LINKEDIN_ACTION_PROVIDER=manual
+CRON_SECRET=use-a-long-random-secret
 ```
 
 Also add the same production LinkedIn callback URL in LinkedIn Developer settings:
@@ -42,6 +44,18 @@ Privacy policy URL:
 ```txt
 https://leadgenj.vercel.app/privacy
 ```
+
+## Campaign engine and LinkedIn access
+
+The campaign engine stores every due LinkedIn action in the database and Vercel Cron calls:
+
+```txt
+https://leadgenj.vercel.app/api/cron/campaign-engine
+```
+
+Use `LINKEDIN_ACTION_PROVIDER=manual` in production until you connect an approved LinkedIn or partner sending API. Use `LINKEDIN_ACTION_PROVIDER=demo` only for local demos because it marks due actions as sent without contacting LinkedIn.
+
+LinkedIn OAuth keys come from the LinkedIn Developer Portal. Create an app, add your verified company page, then request the API products your use case needs. OAuth app creation is free, but product access is approval-based. LinkedIn does not provide a free general API for arbitrary connection-request and private-message automation.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

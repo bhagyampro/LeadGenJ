@@ -55,7 +55,7 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { name, stepOrder, waitDays, messageTemplate, aiAssisted, personalizationVariables } = body
+    const { name, stepOrder, waitDays, messageTemplate, aiAssisted, personalizationVariables, actionType } = body
 
     const campaign = await prisma.campaign.findFirst({
       where: {
@@ -79,12 +79,14 @@ export async function POST(
       _max: { stepOrder: true },
     })
 
+    const nextStepOrder = stepOrder || ((maxOrder._max.stepOrder || 0) + 1)
     const sequence = await prisma.sequence.create({
       data: {
         campaignId,
-        name: name || `Step ${(maxOrder._max.stepOrder || 0) + 1}`,
-        stepOrder: stepOrder || ((maxOrder._max.stepOrder || 0) + 1),
-        waitDays: waitDays || 1,
+        name: name || `Step ${nextStepOrder}`,
+        stepOrder: nextStepOrder,
+        waitDays: waitDays ?? 1,
+        actionType: actionType || (nextStepOrder === 1 ? 'connection_request' : 'message'),
         messageTemplate,
         aiAssisted: aiAssisted || false,
         personalizationVariables: personalizationVariables || {},

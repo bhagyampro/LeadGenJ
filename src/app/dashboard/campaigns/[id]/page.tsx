@@ -17,6 +17,7 @@ interface Sequence {
   stepOrder: number
   waitDays: number
   messageTemplate: string
+  actionType: string
   aiAssisted: boolean
 }
 
@@ -30,6 +31,9 @@ interface CampaignLead {
   }
   status: string
   currentStep: number
+  nextMessageDate: string | null
+  lastMessageSent: string | null
+  lastError: string | null
 }
 
 interface Campaign {
@@ -68,6 +72,7 @@ export default function CampaignDetailPage() {
     id: '',
     name: '',
     waitDays: 1,
+    actionType: 'connection_request',
     messageTemplate: demoMessages[0],
   })
 
@@ -119,6 +124,7 @@ export default function CampaignDetailPage() {
       id: '',
       name: '',
       waitDays: 1,
+      actionType: 'connection_request',
       messageTemplate: demoMessages[0],
     })
   }
@@ -128,6 +134,7 @@ export default function CampaignDetailPage() {
       id: step.id,
       name: step.name,
       waitDays: step.waitDays,
+      actionType: step.actionType || 'message',
       messageTemplate: step.messageTemplate,
     })
   }
@@ -146,6 +153,7 @@ export default function CampaignDetailPage() {
       body: JSON.stringify({
         name: draftStep.name,
         waitDays: draftStep.waitDays,
+        actionType: draftStep.actionType,
         messageTemplate: draftStep.messageTemplate,
         aiAssisted: false,
       }),
@@ -178,6 +186,21 @@ export default function CampaignDetailPage() {
       setFeedback(`Campaign ${data.status}.`)
     } else {
       setFeedback(data.error || `Unable to ${action} campaign.`)
+    }
+  }
+
+  const changeLeadStatus = async (leadId: string, event: 'accepted' | 'replied' | 'failed') => {
+    const res = await fetch(`/api/campaigns/${campaignId}/leads/${leadId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setFeedback(event === 'accepted' ? 'Acceptance recorded and next step scheduled.' : `Lead marked ${event}.`)
+      await fetchCampaign(false)
+    } else {
+      setFeedback(data.error || 'Unable to update lead status.')
     }
   }
 
@@ -288,6 +311,26 @@ export default function CampaignDetailPage() {
                   <p className="text-sm font-medium text-white">{item.lead.firstName} {item.lead.lastName}</p>
                   <p className="text-xs text-muted">{item.lead.title || 'No title'} at {item.lead.company || 'No company'}</p>
                   <p className="mt-2 text-xs text-accent">Step {item.currentStep || 0} • {item.status}</p>
+                  {item.nextMessageDate && (
+                    <p className="mt-1 text-xs text-muted">Next action {new Date(item.nextMessageDate).toLocaleString()}</p>
+                  )}
+                  {item.lastMessageSent && (
+                    <p className="mt-1 text-xs text-muted">Last sent {new Date(item.lastMessageSent).toLocaleString()}</p>
+                  )}
+                  {item.lastError && (
+                    <p className="mt-2 text-xs text-red-400">{item.lastError}</p>
+                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => changeLeadStatus(item.lead.id, 'accepted')}>
+                      Accepted
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => changeLeadStatus(item.lead.id, 'replied')}>
+                      Replied
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => changeLeadStatus(item.lead.id, 'failed')}>
+                      Failed
+                    </Button>
+                  </div>
                 </div>
               ))}
               {campaign.campaignLeads.length === 0 && (
@@ -320,6 +363,19 @@ export default function CampaignDetailPage() {
                   <Input id="waitDays" type="number" min={0} value={draftStep.waitDays} onChange={(event) => setDraftStep({ ...draftStep, waitDays: Number(event.target.value) })} required />
                 </div>
               </div>
+              <div className="mb-4 space-y-2">
+                <Label htmlFor="actionType" className="text-white">Action Type</Label>
+                <select
+                  id="actionType"
+                  value={draftStep.actionType}
+                  onChange={(event) => setDraftStep({ ...draftStep, actionType: event.target.value })}
+                  className="h-10 w-full rounded-lg border border-border bg-secondary px-3 text-sm text-white outline-none focus:ring-2 focus:ring-accent"
+                >
+                  <option value="connection_request">Connection request</option>
+                  <option value="message">LinkedIn message</option>
+                  <option value="profile_visit">Profile visit</option>
+                </select>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="template" className="text-white">Message Template</Label>
                 <p className="text-xs text-muted">
@@ -350,7 +406,9 @@ export default function CampaignDetailPage() {
                   <div className="mb-3 flex items-center justify-between gap-4">
                     <div>
                       <p className="font-medium text-white">Step {step.stepOrder}: {step.name}</p>
-                      <p className="text-sm text-muted">Wait {step.waitDays} day{step.waitDays === 1 ? '' : 's'}</p>
+                      <p className="text-sm text-muted">
+                        {step.actionType === 'connection_request' ? 'Connection request' : 'LinkedIn message'} • Wait {step.waitDays} day{step.waitDays === 1 ? '' : 's'}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button size="sm" variant="ghost" onClick={() => editStep(step)}>
