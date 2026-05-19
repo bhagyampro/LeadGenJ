@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { mapLeadImportRows } from '@/lib/lead-import'
-import { Plus, Search, Filter, Download, Upload, Compass, Trash2 } from 'lucide-react'
+import { Plus, Search, Filter, Download, Upload, Compass, Trash2, Edit3 } from 'lucide-react'
 
 interface Lead {
   id: string
@@ -54,6 +54,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [importRows, setImportRows] = useState<Array<Record<string, string>>>([])
   const [importMessage, setImportMessage] = useState('')
@@ -68,6 +69,17 @@ export default function LeadsPage() {
     industry: '',
     location: '',
     linkedinProfileUrl: '',
+  })
+  const [editingLead, setEditingLead] = useState({
+    id: '',
+    firstName: '',
+    lastName: '',
+    title: '',
+    company: '',
+    industry: '',
+    location: '',
+    linkedinProfileUrl: '',
+    status: 'new',
   })
 
   useEffect(() => {
@@ -125,6 +137,46 @@ export default function LeadsPage() {
       }
     } catch (error) {
       console.error('Error adding lead:', error)
+    }
+  }
+
+  const openEditLead = (lead: Lead) => {
+    setEditingLead({
+      id: lead.id,
+      firstName: lead.firstName || '',
+      lastName: lead.lastName || '',
+      title: lead.title || '',
+      company: lead.company || '',
+      industry: lead.industry || '',
+      location: lead.location || '',
+      linkedinProfileUrl: lead.linkedinProfileUrl || '',
+      status: lead.status || 'new',
+    })
+    setIsEditOpen(true)
+  }
+
+  const handleEditLead = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const res = await fetch(`/api/leads/${editingLead.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: editingLead.firstName,
+        lastName: editingLead.lastName,
+        title: editingLead.title,
+        company: editingLead.company,
+        industry: editingLead.industry,
+        location: editingLead.location,
+        linkedinProfileUrl: editingLead.linkedinProfileUrl,
+        status: editingLead.status,
+      }),
+    })
+
+    if (res.ok) {
+      const updated = await res.json()
+      setLeads(leads.map((lead) => (lead.id === updated.id ? updated : lead)))
+      setIsEditOpen(false)
     }
   }
 
@@ -469,6 +521,72 @@ export default function LeadsPage() {
       </div>
 
       {/* Search and Filters */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="bg-navy-light border-border">
+          <form onSubmit={handleEditLead}>
+            <DialogHeader>
+              <DialogTitle className="text-white">Edit Lead</DialogTitle>
+              <DialogDescription className="text-muted">
+                Update lead details, status, and LinkedIn profile URL.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-firstName" className="text-white">First Name</Label>
+                  <Input id="edit-firstName" value={editingLead.firstName} onChange={(e) => setEditingLead({ ...editingLead, firstName: e.target.value })} className="bg-navy border-border" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-lastName" className="text-white">Last Name</Label>
+                  <Input id="edit-lastName" value={editingLead.lastName} onChange={(e) => setEditingLead({ ...editingLead, lastName: e.target.value })} className="bg-navy border-border" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-title" className="text-white">Title</Label>
+                <Input id="edit-title" value={editingLead.title} onChange={(e) => setEditingLead({ ...editingLead, title: e.target.value })} className="bg-navy border-border" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-company" className="text-white">Company</Label>
+                <Input id="edit-company" value={editingLead.company} onChange={(e) => setEditingLead({ ...editingLead, company: e.target.value })} className="bg-navy border-border" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-industry" className="text-white">Industry</Label>
+                  <Input id="edit-industry" value={editingLead.industry} onChange={(e) => setEditingLead({ ...editingLead, industry: e.target.value })} className="bg-navy border-border" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-location" className="text-white">Location</Label>
+                  <Input id="edit-location" value={editingLead.location} onChange={(e) => setEditingLead({ ...editingLead, location: e.target.value })} className="bg-navy border-border" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-linkedin" className="text-white">LinkedIn URL</Label>
+                <Input id="edit-linkedin" value={editingLead.linkedinProfileUrl} onChange={(e) => setEditingLead({ ...editingLead, linkedinProfileUrl: e.target.value })} className="bg-navy border-border" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status" className="text-white">Status</Label>
+                <select
+                  id="edit-status"
+                  value={editingLead.status}
+                  onChange={(e) => setEditingLead({ ...editingLead, status: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-navy border border-border text-white"
+                >
+                  <option value="new">New</option>
+                  <option value="qualified">Qualified</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="replied">Replied</option>
+                  <option value="not_fit">Not Fit</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save Lead</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Search and Filters */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
@@ -580,6 +698,9 @@ export default function LeadsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
+                      <Button size="sm" variant="ghost" onClick={() => openEditLead(lead)}>
+                        <Edit3 className="w-4 h-4 text-accent" />
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => deleteLead(lead.id)}>
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>

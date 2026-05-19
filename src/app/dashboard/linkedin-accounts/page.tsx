@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Edit3, Loader2, Plus } from 'lucide-react'
+import { Edit3, Loader2, Plus, Trash2 } from 'lucide-react'
 
 interface LinkedInAccount {
   id: string
@@ -207,6 +207,19 @@ export default function LinkedInAccountsPage() {
       }
     } catch (error) {
       console.error('Error toggling account:', error)
+    }
+  }
+
+  const handleDeleteAccount = async (accountId: string) => {
+    if (!confirm('Delete this LinkedIn account? Campaigns using it will need another account before activation.')) return
+
+    const res = await fetch(`/api/linkedin-accounts/${accountId}`, { method: 'DELETE' })
+    if (res.ok) {
+      setAccounts(accounts.filter((account) => account.id !== accountId))
+      setFeedback('LinkedIn account deleted.')
+    } else {
+      const data = await res.json()
+      setFeedback(data.error || 'Unable to delete LinkedIn account.')
     }
   }
 
@@ -472,6 +485,13 @@ export default function LinkedInAccountsPage() {
                       ) : (
                         'Validate'
                       )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteAccount(account.id)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
                 </div>

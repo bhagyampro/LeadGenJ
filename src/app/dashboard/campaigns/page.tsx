@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Play, Pause, Copy, Trash2 } from 'lucide-react'
+import { Plus, Play, Pause, Copy, Trash2, Eye } from 'lucide-react'
 
 interface Campaign {
   id: string
@@ -277,6 +278,12 @@ export default function CampaignsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href={`/dashboard/campaigns/${campaign.id}`}>
+                      <Eye className="w-4 h-4 mr-1" />
+                      Open
+                    </Link>
+                  </Button>
                   {campaign.status === 'draft' && (
                     <Button
                       size="sm"

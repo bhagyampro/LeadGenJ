@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CreditBalanceDisplay } from '@/components/dashboard/credit-balance'
@@ -166,7 +167,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <a href="/dashboard/campaigns">New Campaign</a>
+              <Link href="/dashboard/campaigns">New Campaign</Link>
             </Button>
           </CardContent>
         </Card>
