@@ -10,7 +10,7 @@ async function createChatCompletion(input: {
   temperature: number
   maxTokens: number
 }) {
-  const provider = process.env.AI_PROVIDER || 'ollama'
+  const provider = process.env.AI_PROVIDER || 'openrouter'
 
   if (provider === 'ollama') {
     return createOllamaChatCompletion(input)
@@ -27,7 +27,7 @@ async function createChatCompletion(input: {
     })
 
     const response = await client.chat.completions.create({
-      model: process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it',
+      model: process.env.OPENROUTER_MODEL || 'deepseek/deepseek-v4-flash:free',
       messages: input.messages,
       temperature: input.temperature,
       max_tokens: input.maxTokens,

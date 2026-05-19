@@ -1,6 +1,10 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
 function createPrismaClient() {
   const databaseUrl = process.env.DATABASE_URL
 
@@ -17,10 +21,18 @@ function createPrismaClient() {
   })
 }
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+function getPrismaClient() {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient()
+  }
+
+  return globalForPrisma.prisma
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const client = getPrismaClient()
+    const value = client[property as keyof PrismaClient]
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})

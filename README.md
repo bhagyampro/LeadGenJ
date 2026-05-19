@@ -26,6 +26,9 @@ NEXTAUTH_URL=https://leadgenj.vercel.app
 APP_URL=https://leadgenj.vercel.app
 LINKEDIN_REDIRECT_URI=https://leadgenj.vercel.app/api/linkedin/callback
 OPENROUTER_APP_URL=https://leadgenj.vercel.app
+AI_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-your-openrouter-api-key
+OPENROUTER_MODEL=deepseek/deepseek-v4-flash:free
 ```
 
 Also add the same production LinkedIn callback URL in LinkedIn Developer settings:
