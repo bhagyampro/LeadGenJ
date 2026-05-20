@@ -26,6 +26,7 @@ NEXTAUTH_URL=https://leadgenj.vercel.app
 APP_URL=https://leadgenj.vercel.app
 DATABASE_URL=postgresql://...
 DIRECT_URL=postgresql://...
+# If you connected Vercel/Neon Postgres, POSTGRES_PRISMA_URL / POSTGRES_URL are also supported.
 LINKEDIN_REDIRECT_URI=https://leadgenj.vercel.app/api/linkedin/callback
 OPENROUTER_APP_URL=https://leadgenj.vercel.app
 AI_PROVIDER=openrouter
@@ -39,7 +40,19 @@ AUTH_SECRET=use-a-long-random-auth-secret
 NEXTAUTH_SECRET=use-the-same-value-as-auth-secret
 ```
 
-`DATABASE_URL` must be the pooled runtime connection string for the deployed app. Use `DIRECT_URL` for Prisma schema pushes/migrations when your provider gives you a separate direct/session connection string.
+`DATABASE_URL` must be the pooled runtime connection string for the deployed app. Vercel/Neon `POSTGRES_PRISMA_URL` and `POSTGRES_URL` are also supported at runtime. Use `DIRECT_URL` or `POSTGRES_URL_NON_POOLING` for Prisma schema pushes/migrations when your provider gives you a separate direct/session connection string.
+
+After setting database variables, run the schema push against production:
+
+```bash
+npx prisma db push
+```
+
+Check production readiness at:
+
+```txt
+https://leadgenj.vercel.app/api/health
+```
 
 Also add this authorized redirect URI in Google Cloud Console for the same OAuth client:
 

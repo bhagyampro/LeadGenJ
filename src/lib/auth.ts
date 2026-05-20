@@ -3,7 +3,9 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
+import { getAuthSecret } from './env'
 import { getGoogleOAuthConfig } from './oauth-config'
+import { isDatabaseError } from './server-diagnostics'
 
 async function ensureUserWorkspace(userId: string) {
   const existingWorkspace = await prisma.workspace.findFirst({
@@ -71,31 +73,39 @@ const providers: NextAuthConfig['providers'] = [
       password: { label: 'Password', type: 'password' }
     },
     async authorize(credentials) {
-      if (!credentials?.email || !credentials?.password) {
-        return null
-      }
+      try {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
 
-      const user = await prisma.user.findUnique({
-        where: { email: String(credentials.email) }
-      })
+        const user = await prisma.user.findUnique({
+          where: { email: String(credentials.email).trim().toLowerCase() }
+        })
 
-      if (!user?.password) {
-        return null
-      }
+        if (!user?.password) {
+          return null
+        }
 
-      const isPasswordValid = await bcrypt.compare(String(credentials.password), user.password)
+        const isPasswordValid = await bcrypt.compare(String(credentials.password), user.password)
 
-      if (!isPasswordValid) {
-        return null
-      }
+        if (!isPasswordValid) {
+          return null
+        }
 
-      await ensureUserWorkspace(user.id)
+        await ensureUserWorkspace(user.id)
 
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.fullName,
-        image: user.avatarUrl ?? undefined,
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.fullName,
+          image: user.avatarUrl ?? undefined,
+        }
+      } catch (error) {
+        console.error('Credentials sign-in error:', error)
+        if (isDatabaseError(error)) {
+          return null
+        }
+        throw error
       }
     }
   }),
@@ -115,7 +125,7 @@ if (googleOAuth.clientId && googleOAuth.clientSecret) {
 
 export const authConfig = {
   providers,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: getAuthSecret(),
   trustHost: true,
   session: {
     strategy: 'jwt'

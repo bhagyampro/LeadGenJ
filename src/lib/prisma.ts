@@ -1,15 +1,16 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { getDatabaseUrl } from './env'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  const databaseUrl = process.env.DATABASE_URL
+  const databaseUrl = getDatabaseUrl()
 
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required')
+    throw new Error('DATABASE_URL or POSTGRES_PRISMA_URL is required')
   }
 
   if (databaseUrl.startsWith('prisma+postgres://')) {

@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getDatabaseErrorMessage, isDatabaseError } from '@/lib/server-diagnostics'
 
 export const runtime = 'nodejs'
-
-function isDatabaseSetupError(error: unknown) {
-  if (error instanceof Prisma.PrismaClientInitializationError) {
-    return true
-  }
-
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    return ['P1000', 'P1001', 'P1002', 'P1003', 'P1010', 'P2021', 'P2022'].includes(error.code)
-  }
-
-  return error instanceof Error && error.message.includes('DATABASE_URL is required')
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -84,9 +72,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Registration error:', error)
-    if (isDatabaseSetupError(error)) {
+    if (isDatabaseError(error)) {
       return NextResponse.json(
-        { error: 'Database is not ready. Set DATABASE_URL in Vercel and run npx prisma db push, then try again.' },
+        { error: getDatabaseErrorMessage(error) },
         { status: 503 }
       )
     }

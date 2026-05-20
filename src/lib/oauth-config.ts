@@ -1,11 +1,4 @@
-function firstEnv(...names: string[]) {
-  for (const name of names) {
-    const value = process.env[name]
-    if (value) return value
-  }
-
-  return undefined
-}
+import { firstEnv } from './env'
 
 export function getGoogleOAuthConfig() {
   return {
