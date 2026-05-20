@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (!process.env.LINKEDIN_CLIENT_ID) {
+  if (!process.env.LINKEDIN_CLIENT_ID || !process.env.LINKEDIN_CLIENT_SECRET) {
     return NextResponse.redirect(new URL('/dashboard/linkedin-accounts?linkedin=missing_config', request.url))
   }
 

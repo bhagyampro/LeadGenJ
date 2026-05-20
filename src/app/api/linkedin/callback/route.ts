@@ -113,26 +113,50 @@ export async function GET(request: NextRequest) {
     const displayName = profile.name || [profile.given_name, profile.family_name].filter(Boolean).join(' ') || 'LinkedIn Account'
     const expiresAt = token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : null
 
-    await prisma.linkedInAccount.create({
-      data: {
+    const profileUrl = profile.profile || `linkedin:oidc:${profile.sub}`
+    const sessionCookieEncrypted = encrypt(JSON.stringify({
+      provider: 'linkedin_oidc',
+      accessToken: token.access_token,
+      idToken: token.id_token,
+      expiresAt,
+      scope: token.scope,
+      tokenType: token.token_type,
+      profile,
+    }))
+
+    const existingAccount = await prisma.linkedInAccount.findFirst({
+      where: {
         workspaceId: workspace.id,
-        name: displayName,
-        profileUrl: profile.profile || `linkedin:oidc:${profile.sub}`,
-        sessionCookieEncrypted: encrypt(JSON.stringify({
-          provider: 'linkedin_oidc',
-          accessToken: token.access_token,
-          idToken: token.id_token,
-          expiresAt,
-          scope: token.scope,
-          tokenType: token.token_type,
-          profile,
-        })),
-        status: 'active',
-        isActive: true,
-        dailyLimit: 20,
-        lastUsed: new Date(),
+        profileUrl,
       },
+      select: { id: true },
     })
+
+    if (existingAccount) {
+      await prisma.linkedInAccount.update({
+        where: { id: existingAccount.id },
+        data: {
+          name: displayName,
+          sessionCookieEncrypted,
+          status: 'active',
+          isActive: true,
+          lastUsed: new Date(),
+        },
+      })
+    } else {
+      await prisma.linkedInAccount.create({
+        data: {
+          workspaceId: workspace.id,
+          name: displayName,
+          profileUrl,
+          sessionCookieEncrypted,
+          status: 'active',
+          isActive: true,
+          dailyLimit: 20,
+          lastUsed: new Date(),
+        },
+      })
+    }
 
     const response = redirectToDashboard(request, 'connected')
     response.cookies.delete('linkedin_oauth_state')

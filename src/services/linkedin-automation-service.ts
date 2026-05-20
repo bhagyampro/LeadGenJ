@@ -1,7 +1,10 @@
 import type { InputJsonObject } from '@prisma/client/runtime/client'
+import { decrypt } from '@/lib/encryption'
 import { prisma } from '@/lib/prisma'
 import { enqueueLinkedInAction } from '@/lib/queue'
 import { recordAnalyticsEvent } from './activity-service'
+
+const LINKEDIN_USERINFO_URL = 'https://api.linkedin.com/v2/userinfo'
 
 const SUPPORTED_ACTIONS = new Set([
   'connection_request',
@@ -9,6 +12,12 @@ const SUPPORTED_ACTIONS = new Set([
   'profile_visit',
   'withdraw_invite',
 ])
+
+type StoredLinkedInOAuthToken = {
+  provider?: string
+  accessToken?: string
+  expiresAt?: string | null
+}
 
 export async function queueLinkedInAction(input: {
   workspaceId: string
@@ -86,7 +95,13 @@ export async function processDueLinkedInActions(limit = 25) {
 
   const results = []
   for (const action of actions) {
-    results.push(await performLinkedInAction(action.id))
+    try {
+      results.push(await performLinkedInAction(action.id))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'LinkedIn action failed'
+      await markActionFailed(action.id, message)
+      results.push({ actionId: action.id, status: 'failed', error: message })
+    }
   }
 
   return { processed: results.length, results }
@@ -198,6 +213,33 @@ async function markActionBlocked(actionId: string, error: string) {
   })
 }
 
+async function markActionFailed(actionId: string, error: string) {
+  await prisma.automationAction.update({
+    where: { id: actionId },
+    data: {
+      status: 'failed',
+      failedAt: new Date(),
+      error,
+    },
+  })
+}
+
+function parseStoredLinkedInToken(encryptedValue: string) {
+  try {
+    return JSON.parse(decrypt(encryptedValue)) as StoredLinkedInOAuthToken
+  } catch {
+    return null
+  }
+}
+
+async function verifyLinkedInAccessToken(accessToken: string) {
+  const response = await fetch(LINKEDIN_USERINFO_URL, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  return response.ok
+}
+
 export async function validateLinkedInSession(linkedinAccountId: string) {
   const account = await prisma.linkedInAccount.findUnique({
     where: { id: linkedinAccountId },
@@ -207,10 +249,39 @@ export async function validateLinkedInSession(linkedinAccountId: string) {
     throw new Error('LinkedIn account not found')
   }
 
+  if (!account.sessionCookieEncrypted) {
+    return prisma.linkedInAccount.update({
+      where: { id: linkedinAccountId },
+      data: {
+        status: 'needs_reconnect',
+        lastUsed: new Date(),
+      },
+    })
+  }
+
+  const storedToken = parseStoredLinkedInToken(account.sessionCookieEncrypted)
+
+  if (storedToken?.provider === 'linkedin_oidc') {
+    const tokenExpired = storedToken.expiresAt
+      ? new Date(storedToken.expiresAt).getTime() <= Date.now()
+      : false
+    const tokenValid = Boolean(storedToken.accessToken) && !tokenExpired
+      ? await verifyLinkedInAccessToken(storedToken.accessToken as string)
+      : false
+
+    return prisma.linkedInAccount.update({
+      where: { id: linkedinAccountId },
+      data: {
+        status: tokenValid ? 'active' : 'needs_reconnect',
+        lastUsed: new Date(),
+      },
+    })
+  }
+
   return prisma.linkedInAccount.update({
     where: { id: linkedinAccountId },
     data: {
-      status: account.sessionCookieEncrypted ? 'active' : 'needs_reconnect',
+      status: 'active',
       lastUsed: new Date(),
     },
   })
