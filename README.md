@@ -24,6 +24,8 @@ For the production deployment at `https://leadgenj.vercel.app`, set these variab
 AUTH_URL=https://leadgenj.vercel.app
 NEXTAUTH_URL=https://leadgenj.vercel.app
 APP_URL=https://leadgenj.vercel.app
+DATABASE_URL=postgresql://...
+DIRECT_URL=postgresql://...
 LINKEDIN_REDIRECT_URI=https://leadgenj.vercel.app/api/linkedin/callback
 OPENROUTER_APP_URL=https://leadgenj.vercel.app
 AI_PROVIDER=openrouter
@@ -36,6 +38,8 @@ GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
 AUTH_SECRET=use-a-long-random-auth-secret
 NEXTAUTH_SECRET=use-the-same-value-as-auth-secret
 ```
+
+`DATABASE_URL` must be the pooled runtime connection string for the deployed app. Use `DIRECT_URL` for Prisma schema pushes/migrations when your provider gives you a separate direct/session connection string.
 
 Also add the same production LinkedIn callback URL in LinkedIn Developer settings:
 
