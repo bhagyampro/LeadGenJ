@@ -41,6 +41,12 @@ NEXTAUTH_SECRET=use-the-same-value-as-auth-secret
 
 `DATABASE_URL` must be the pooled runtime connection string for the deployed app. Use `DIRECT_URL` for Prisma schema pushes/migrations when your provider gives you a separate direct/session connection string.
 
+Also add this authorized redirect URI in Google Cloud Console for the same OAuth client:
+
+```txt
+https://leadgenj.vercel.app/api/auth/callback/google
+```
+
 Also add the same production LinkedIn callback URL in LinkedIn Developer settings:
 
 ```txt

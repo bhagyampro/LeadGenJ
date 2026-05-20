@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server'
+import { getGoogleOAuthConfig } from '@/lib/oauth-config'
+
+export const runtime = 'nodejs'
 
 export async function GET() {
-  const hasGoogleClientId = Boolean(
-    process.env.GOOGLE_CLIENT_ID ||
-    process.env.AUTH_GOOGLE_ID ||
-    process.env.GOOGLE_AUTH_CLIENT_ID
-  )
-  const hasGoogleClientSecret = Boolean(
-    process.env.GOOGLE_CLIENT_SECRET ||
-    process.env.AUTH_GOOGLE_SECRET ||
-    process.env.GOOGLE_AUTH_CLIENT_SECRET
-  )
+  const googleOAuth = getGoogleOAuthConfig()
+  const hasGoogleClientId = Boolean(googleOAuth.clientId)
+  const hasGoogleClientSecret = Boolean(googleOAuth.clientSecret)
 
   return NextResponse.json({
     google: hasGoogleClientId && hasGoogleClientSecret,

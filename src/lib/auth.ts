@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
+import { getGoogleOAuthConfig } from './oauth-config'
 
 async function ensureUserWorkspace(userId: string) {
   const existingWorkspace = await prisma.workspace.findFirst({
@@ -99,13 +100,6 @@ const providers: NextAuthConfig['providers'] = [
     }
   }),
 ]
-
-function getGoogleOAuthConfig() {
-  return {
-    clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_AUTH_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_AUTH_CLIENT_SECRET,
-  }
-}
 
 const googleOAuth = getGoogleOAuthConfig()
 
